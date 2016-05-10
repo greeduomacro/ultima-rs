@@ -1,12 +1,16 @@
+extern crate byteorder;
 extern crate glutin;
+
 #[macro_use]
 extern crate gfx;
 extern crate gfx_device_gl;
 extern crate gfx_window_glutin;
-extern crate image;
+
+mod resources;
 
 use gfx::traits::FactoryExt;
 use gfx::Device;
+use resources::{Resources};
 
 pub type ColorFormat = gfx::format::Rgba8;
 pub type DepthFormat = gfx::format::DepthStencil;
@@ -22,6 +26,7 @@ gfx_pipeline!(pipe {
     out: gfx::RenderTarget<ColorFormat> = "o_Color",
 });
 
+/*
 fn load_texture<R, F>(factory: &mut F, data: &[u8])
     -> Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, String> where R: gfx::Resources, F: gfx::Factory<R> {
     use std::io::Cursor;
@@ -32,6 +37,7 @@ fn load_texture<R, F>(factory: &mut F, data: &[u8])
     let (_, view) = factory.create_texture_const_u8::<ColorFormat>(kind, &[&img]).unwrap();
     Ok(view)
 }
+*/
 
 fn main() {
     let builder = glutin::WindowBuilder::new()
@@ -41,6 +47,7 @@ fn main() {
     let (window, mut device, mut factory, main_color, _main_depth) = gfx_window_glutin::init::<ColorFormat, DepthFormat>(builder);
     let command_buffer = factory.create_command_buffer();
     let mut encoder: gfx::Encoder<_, _> = command_buffer.into();
+    let mut resources = Resources::new();
 
     let quad: [Vertex; 4] = [
         Vertex { pos: [ -0.5, -0.5 ], uv: [0.0, 1.0] },
@@ -49,7 +56,8 @@ fn main() {
         Vertex { pos: [  0.5,  0.5 ], uv: [1.0, 0.0] },
     ];
 
-    let no_tile = load_texture(&mut factory, &include_bytes!("../assets/textures/no_tile.png")[..]).unwrap();
+    //let no_tile = load_texture(&mut factory, &include_bytes!("../assets/textures/no_tile.png")[..]).unwrap();
+    let no_tile = resources.get_land(&mut factory, 100 as usize);
     let sampler = factory.create_sampler_linear();
 
     let shader_set = factory.create_shader_set(
