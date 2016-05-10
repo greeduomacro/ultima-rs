@@ -26,19 +26,6 @@ gfx_pipeline!(pipe {
     out: gfx::RenderTarget<ColorFormat> = "o_Color",
 });
 
-/*
-fn load_texture<R, F>(factory: &mut F, data: &[u8])
-    -> Result<gfx::handle::ShaderResourceView<R, [f32; 4]>, String> where R: gfx::Resources, F: gfx::Factory<R> {
-    use std::io::Cursor;
-    use gfx::tex as t;
-    let img = image::load(Cursor::new(data), image::PNG).unwrap().to_rgba();
-    let (width, height) = img.dimensions();
-    let kind = t::Kind::D2(width as t::Size, height as t::Size, t::AaMode::Single);
-    let (_, view) = factory.create_texture_const_u8::<ColorFormat>(kind, &[&img]).unwrap();
-    Ok(view)
-}
-*/
-
 fn main() {
     let builder = glutin::WindowBuilder::new()
         .with_title("Ultima Online RS".to_string())
@@ -50,14 +37,20 @@ fn main() {
     let mut resources = Resources::new();
 
     let quad: [Vertex; 4] = [
+        Vertex { pos: [ -0.1, -0.1 ], uv: [0.0, 1.0] },
+        Vertex { pos: [ -0.1,  0.1 ], uv: [0.0, 0.0] },
+        Vertex { pos: [  0.1, -0.1 ], uv: [1.0, 1.0] },
+        Vertex { pos: [  0.1,  0.1 ], uv: [1.0, 0.0] },
+    ];
+    let quad2: [Vertex; 4] = [
         Vertex { pos: [ -0.5, -0.5 ], uv: [0.0, 1.0] },
-        Vertex { pos: [ -0.5,  0.5 ], uv: [0.0, 0.0] },
-        Vertex { pos: [  0.5, -0.5 ], uv: [1.0, 1.0] },
-        Vertex { pos: [  0.5,  0.5 ], uv: [1.0, 0.0] },
+        Vertex { pos: [ -0.5, -0.3 ], uv: [0.0, 0.0] },
+        Vertex { pos: [ -0.3, -0.5 ], uv: [1.0, 1.0] },
+        Vertex { pos: [ -0.3, -0.3 ], uv: [1.0, 0.0] },
     ];
 
-    //let no_tile = load_texture(&mut factory, &include_bytes!("../assets/textures/no_tile.png")[..]).unwrap();
-    let no_tile = resources.get_land(&mut factory, 100 as usize);
+    let no_tile = resources.get_land(&mut factory, 0);
+    let grass = resources.get_land(&mut factory, 3);
     let sampler = factory.create_sampler_linear();
 
     let shader_set = factory.create_shader_set(
@@ -75,7 +68,7 @@ fn main() {
     let (vertex_buffer, slice) = factory.create_vertex_buffer_with_slice(&quad, ());
     let data = pipe::Data {
         vbuf: vertex_buffer,
-        texture: (no_tile, sampler),
+        texture: (grass, sampler),
         out: main_color,
     };
 
@@ -88,7 +81,7 @@ fn main() {
             }
         }
 
-        encoder.clear(&data.out, [0.1, 0.2, 0.3, 1.0]);
+        encoder.clear(&data.out, [0.0, 0.0, 0.0, 1.0]);
         encoder.draw(&slice, &pso, &data);
         window.swap_buffers().unwrap();
         device.cleanup();
