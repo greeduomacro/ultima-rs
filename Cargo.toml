@@ -6,3 +6,8 @@ authors = ["Marcelo Paez <paezao@gmail.com>"]
 [dependencies]
 sdl2 = "*"
 byteorder = "*"
+glutin = "*"
+gfx = "*"
+gfx_device_gl = "*"
+gfx_window_glutin = "*"
+image = "*"
